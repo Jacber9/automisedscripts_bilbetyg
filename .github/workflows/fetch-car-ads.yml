@@ -1,9 +1,9 @@
 name: Fetch Car Ads Daily
 
-on:
-  schedule:
-  - cron: '0 10 * * *'  # 10:00 UTC = 12:00 svensk sommartid
-  workflow_dispatch:       # Gör att du kan starta det manuellt också
+#on:Ta bort alla hashtags påd enna och nedanstående rader för att aktivera schemalagd
+#  schedule:
+ # - cron: '0 10 * * *'  # 10:00 UTC = 12:00 svensk sommartid
+ # workflow_dispatch:       # Gör att du kan starta det manuellt också
 
 jobs:
   fetch:
