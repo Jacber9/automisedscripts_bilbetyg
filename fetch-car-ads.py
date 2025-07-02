@@ -43,12 +43,15 @@ def to_timestamp(val):
 def log_api_response(data):
     try:
         res = supabase.table("ads_api_log").insert({"response": data}).execute()
-        if hasattr(res, "data") and not res.data:
+        # Förväntar sig att res.data är en lista med den nya raden
+        if hasattr(res, "data") and res.data and isinstance(res.data, list):
+            return res.data[0]["id"]  # Hämta id på nya raden
+        elif hasattr(res, "data") and not res.data:
             print("⚠️ Inget loggat i ads_api_log:", res)
     except Exception as e:
         print("EXCEPTION vid loggning:", e)
+    return None
 
-# Huvudfunktion
 def main():
     total_errors = 0
     total_cars = 0
@@ -65,7 +68,7 @@ def main():
                 "Accept": "application/json"
             })
             api_data = response.json()
-            log_api_response(api_data)
+            api_log_id = log_api_response(api_data)  # <-- Få log-id:t här
         except Exception as e:
             print("❌ API FEL:", e)
             break
@@ -123,6 +126,8 @@ def main():
                 "nedc_co2_emission_combined_max": to_float(car.get("nedc", {}).get("CO2_emission_combined", {}).get("max")),
                 "euro_ncap_year": to_int(car.get("euro_ncap", {}).get("year")),
                 "euro_ncap_result": to_int(car.get("euro_ncap", {}).get("result")),
+                "image_urls": car.get("images", []),   # <-- Spara hela arrayen här!
+                "ads_api_log_id": api_log_id           # <-- Spara logg-id här!
             }
 
             try:
@@ -134,27 +139,6 @@ def main():
                 total_errors += 1
                 print("EXCEPTION vid upsert i ads_cars:", e)
                 continue
-
-            # Spara bilder
-            try:
-                images = car.get("images", [])
-                if isinstance(images, list) and mapped["carinfo_id"]:
-                    image_rows = []
-                    for url in set(images):  # deduplicera
-                        if isinstance(url, str) and url.strip():
-                            image_rows.append({
-                                "ad_id": mapped["carinfo_id"],
-                                "url": url.strip()
-                            })
-
-                    if image_rows:
-                        result = supabase.table("ads_cars_images").insert(image_rows).execute()
-                        if hasattr(result, "data") and not result.data:
-                            total_errors += 1
-                            print(f"⚠️ Bildinsert misslyckades för {mapped['carinfo_id']}.", result)
-            except Exception as e:
-                total_errors += 1
-                print("🚨 EXCEPTION vid bildinsert:", e)
 
         if not api_data.get("have_more"):
             print("✅ Inga fler batchar att hämta.")

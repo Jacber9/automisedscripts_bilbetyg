@@ -1,12 +1,12 @@
-name: Fetch Car Ads Daily
+name: Update Car Ads Daily
 
 on:
   schedule:
-  - cron: '0 10 * * *'  # 10:00 UTC = 12:00 svensk sommartid
-  workflow_dispatch:       # Gör att du kan starta det manuellt också
+    - cron: '0 0 * * *'   # 00:00 UTC = 02:00 svensk sommartid
+  workflow_dispatch:
 
 jobs:
-  fetch:
+  update:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,18 +23,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: 🔐 Sätt miljövariabler
+      - name: 🚀 Kör update-car-ads.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           CAR_API_IDENTIFIER: ${{ secrets.CAR_API_IDENTIFIER }}
           CAR_API_KEY: ${{ secrets.CAR_API_KEY }}
-        run: echo "Miljövariabler satta."
-
-      - name: 🚀 Kör fetch-car-ads.py
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          CAR_API_IDENTIFIER: ${{ secrets.CAR_API_IDENTIFIER }}
-          CAR_API_KEY: ${{ secrets.CAR_API_KEY }}
-        run: python fetch-car-ads.py
+        run: python update-car-ads.py
