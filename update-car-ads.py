@@ -125,8 +125,9 @@ def main():
         "Content-Type": "application/json"
     }
 
-    # Räkna antal bilar
-    total_cars = supabase.table("ads_cars").select("carinfo_id", count="exact").execute().count
+    # OPTIMERAD COUNT FRÅN SUPABASE
+    response = supabase.table("ads_cars").select("carinfo_id", count="exact", head=True).execute()
+    total_cars = response.count
     print(f"\n🔎 Hittar totalt {total_cars} bilar i databasen.")
 
     while True:
